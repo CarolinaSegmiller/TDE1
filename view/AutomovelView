@@ -1,0 +1,141 @@
+package view;
+
+import controller.AutomovelController;
+import model.Automovel;
+
+import java.util.List;
+import java.util.Scanner;
+
+public class AutomovelView {
+    private AutomovelController controller;
+    private Scanner scanner;
+
+    public AutomovelView() {
+        controller = new AutomovelController();
+        scanner = new Scanner(System.in);
+    }
+
+    public void exibirMenu() {
+        int opcao;
+        do {
+            System.out.println("\n==== MENU ====");
+            System.out.println("1 - Incluir automóvel");
+            System.out.println("2 - Remover automóvel");
+            System.out.println("3 - Alterar dados de automóvel");
+            System.out.println("4 - Consultar automóvel por placa");
+            System.out.println("5 - Listar automóveis (ordenado)");
+            System.out.println("6 - Salvar e sair");
+            opcao = capturarInteiro("Escolha uma opção: ");
+
+            switch (opcao) {
+                case 1 -> incluir();
+                case 2 -> remover();
+                case 3 -> alterar();
+                case 4 -> consultar();
+                case 5 -> listar();
+                case 6 -> {
+                    controller.salvarAutomoveis();
+                    System.out.println("💾 Dados salvos. Encerrando...");
+                }
+                default -> System.out.println("⚠️ Opção inválida.");
+            }
+        } while (opcao != 6);
+    }
+
+    private void incluir() {
+        String placa = capturarString("Placa: ").toUpperCase();
+        String modelo = capturarString("Modelo: ");
+        String marca = capturarString("Marca: ");
+        int ano = capturarInteiro("Ano: ");
+        double valor = capturarDouble("Valor: ");
+
+        Automovel a = new Automovel(placa, modelo, marca, ano, valor);
+        if (controller.inserirAutomovel(a)) {
+            System.out.println("✅ Automóvel cadastrado com sucesso!");
+        } else {
+            System.out.println("❌ Placa já cadastrada.");
+        }
+    }
+
+    private void remover() {
+        String placa = capturarString("Placa do automóvel a remover: ").toUpperCase();
+        if (controller.removerAutomovel(placa)) {
+            System.out.println("✅ Automóvel removido.");
+        } else {
+            System.out.println("❌ Automóvel não encontrado.");
+        }
+    }
+
+    private void alterar() {
+        String placa = capturarString("Placa do automóvel a alterar: ").toUpperCase();
+        Automovel existente = controller.buscarPorPlaca(placa);
+        if (existente != null) {
+            String modelo = capturarString("Novo modelo: ");
+            String marca = capturarString("Nova marca: ");
+            int ano = capturarInteiro("Novo ano: ");
+            double valor = capturarDouble("Novo valor: ");
+
+            controller.alterarAutomovel(placa, modelo, marca, ano, valor);
+            System.out.println("✅ Automóvel alterado.");
+        } else {
+            System.out.println("❌ Automóvel não encontrado.");
+        }
+    }
+
+    private void consultar() {
+        String placa = capturarString("Placa do automóvel: ").toUpperCase();
+        Automovel a = controller.buscarPorPlaca(placa);
+        if (a != null) {
+            System.out.println("\n=== Dados do Automóvel ===");
+            System.out.println("Placa : " + a.getPlaca());
+            System.out.println("Modelo: " + a.getModelo());
+            System.out.println("Marca : " + a.getMarca());
+            System.out.println("Ano   : " + a.getAno());
+            System.out.println("Valor : R$ " + a.getValor());
+        } else {
+            System.out.println("❌ Automóvel não encontrado.");
+        }
+    }
+
+    private void listar() {
+        String criterio = capturarString("Ordenar por (placa/modelo/marca): ").toLowerCase();
+        List<Automovel> lista = controller.listarOrdenadoPor(criterio);
+        if (lista.isEmpty()) {
+            System.out.println("⚠️ Nenhum automóvel cadastrado.");
+        } else {
+            System.out.println("\n=== Lista de Automóveis ===");
+            for (Automovel a : lista) {
+                System.out.printf("%s | %s | %s | %d | R$ %.2f%n",
+                        a.getPlaca(), a.getModelo(), a.getMarca(), a.getAno(), a.getValor());
+            }
+        }
+    }
+
+    // 🔸 Métodos auxiliares
+    private int capturarInteiro(String msg) {
+        while (true) {
+            try {
+                System.out.print(msg);
+                return Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Digite um número inteiro válido.");
+            }
+        }
+    }
+
+    private double capturarDouble(String msg) {
+        while (true) {
+            try {
+                System.out.print(msg);
+                return Double.parseDouble(scanner.nextLine().replace(",", "."));
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Digite um número decimal válido (use ponto ou vírgula).");
+            }
+        }
+    }
+
+    private String capturarString(String msg) {
+        System.out.print(msg);
+        return scanner.nextLine().trim();
+    }
+}
