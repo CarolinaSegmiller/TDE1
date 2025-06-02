@@ -1,0 +1,74 @@
+package controller;
+
+import model.Automovel;
+import model.AutomovelRepository;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class AutomovelController {
+    private List<Automovel> lista;
+    private AutomovelRepository repository;
+
+    public AutomovelController() {
+        repository = new AutomovelRepository();
+        lista = new ArrayList<>(repository.carregar());
+    }
+
+    public boolean inserirAutomovel(Automovel a) {
+        if (buscarPorPlaca(a.getPlaca()) == null) {
+            lista.add(a);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removerAutomovel(String placa) {
+        Automovel a = buscarPorPlaca(placa);
+        if (a != null) {
+            lista.remove(a);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean alterarAutomovel(String placa, String modelo, String marca, int ano, double valor) {
+        Automovel a = buscarPorPlaca(placa);
+        if (a != null) {
+            a.setModelo(modelo);
+            a.setMarca(marca);
+            a.setAno(ano);
+            a.setValor(valor);
+            return true;
+        }
+        return false;
+    }
+
+    public Automovel buscarPorPlaca(String placa) {
+        return lista.stream()
+                .filter(a -> a.getPlaca().equalsIgnoreCase(placa))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<Automovel> listarOrdenadoPor(String criterio) {
+        return switch (criterio.toLowerCase()) {
+            case "placa" -> lista.stream()
+                    .sorted(Comparator.comparing(Automovel::getPlaca))
+                    .collect(Collectors.toList());
+            case "modelo" -> lista.stream()
+                    .sorted(Comparator.comparing(Automovel::getModelo))
+                    .collect(Collectors.toList());
+            case "marca" -> lista.stream()
+                    .sorted(Comparator.comparing(Automovel::getMarca))
+                    .collect(Collectors.toList());
+            default -> lista;
+        };
+    }
+
+    public void salvarAutomoveis() {
+        repository.salvar(lista);
+    }
+}
